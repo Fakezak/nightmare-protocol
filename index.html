@@ -2,91 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIGHTMARE PROTOCOL - CINEMATIC HORROR</title>
+    <title>THE VOID - FULL HORROR EXPERIENCE</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { overflow: hidden; font-family: 'Courier New', monospace; background: black; color: white; }
-        
-        /* SCREENS */
-        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; transition: opacity 1s; background: black; }
-        .hidden { display: none !important; }
-
-        /* LOADING & MENU */
-        #loadingScreen { background: radial-gradient(circle at center, #000 0%, #0a0a0a 100%); }
-        .loading-title, .menu-title { font-size: 4rem; color: #ff3333; text-shadow: 0 0 30px #ff0000; margin-bottom: 2rem; }
-        .menu-title { font-size: 5rem; animation: glitch 3s infinite; }
-        .loading-bar-container { width: 500px; height: 10px; background: #111; border: 1px solid #ff0000; margin: 20px 0; }
-        .loading-bar { width: 0%; height: 100%; background: #ff0000; box-shadow: 0 0 20px #ff0000; transition: width 0.3s; }
-        .loading-tip { color: #ff6666; font-size: 1.2rem; margin-top: 20px; animation: fadeInOut 3s infinite; }
-
-        @keyframes glitch {
-            0%,100% { transform: translate(0); }
-            92% { transform: translate(-5px, 5px); }
-            94% { transform: translate(5px, -5px); }
-            96% { transform: translate(-5px, -5px); }
-            98% { transform: translate(5px, 5px); }
-        }
-        @keyframes fadeInOut { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        .menu-btn { background: transparent; border: 2px solid #ff0000; color: #ff0000; font-size: 1.5rem; padding: 15px 50px; margin: 10px; cursor: pointer; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 3px; transition: all 0.3s; min-width: 300px; }
-        .menu-btn:hover { background: #ff0000; color: black; box-shadow: 0 0 50px #ff0000; transform: scale(1.1); }
-
-        /* HUD & CINEMATICS */
-        .cinematic-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 3rem; text-align: center; z-index: 2000; text-shadow: 0 0 30px #ffffff; animation: textAppear 3s; font-weight: bold; }
-        @keyframes textAppear { 0% { opacity: 0; transform: translate(-50%, -30%); } 20% { opacity: 1; transform: translate(-50%, -50%); } 80% { opacity: 1; } 100% { opacity: 0; } }
-
-        #hud { position: fixed; top: 20px; left: 20px; right: 20px; color: white; font-family: 'Courier New', monospace; z-index: 100; pointer-events: none; display: flex; justify-content: space-between; opacity: 0; transition: opacity 1s; }
-        .hud-visible { opacity: 1 !important; }
-        .status-box { background: rgba(0,0,0,0.7); padding: 15px; border-left: 4px solid #ff0000; font-size: 1.2rem; margin-bottom: 10px; }
-        .hud-left { display: flex; flex-direction: column; }
-        
-        .crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; z-index: 101; pointer-events: none; opacity: 0; }
-        .crosshair-visible { opacity: 1; }
-        .interact-prompt { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #ffff00; font-size: 1.5rem; padding: 15px 30px; border: 2px solid #ffff00; z-index: 102; pointer-events: none; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
-
-        /* VISUAL EFFECTS */
-        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(255,0,0,0.02) 1px, rgba(0,0,0,0) 2px); pointer-events: none; z-index: 1000; }
-        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 250px rgba(0,0,0,0.95); pointer-events: none; z-index: 1000; }
-        .blood-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 0%, rgba(139,0,0,0.3) 100%); pointer-events: none; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
+        #hud { position: fixed; top: 20px; left: 20px; color: white; z-index: 10; pointer-events: none; opacity: 0; transition: 1s; }
+        .visible { opacity: 1 !important; }
+        .prompt { position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); color: yellow; font-size: 1.5rem; display: none; }
+        #cinematic-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 3rem; text-align: center; display: none; z-index: 100; pointer-events: none; }
         canvas { display: block; }
+        #crosshair { position: fixed; top: 50%; left: 50%; width: 4px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); }
     </style>
 </head>
 <body>
-    <div id="loadingScreen" class="screen">
-        <h1 class="loading-title">NIGHTMARE PROTOCOL</h1>
-        <div class="loading-bar-container"><div id="loadingBar" class="loading-bar"></div></div>
-        <div id="loadingTip" class="loading-tip">Loading skyscraper jump...</div>
-    </div>
-
-    <div id="menuScreen" class="screen hidden">
-        <h1 class="menu-title">NIGHTMARE</h1>
-        <button class="menu-btn" id="playBtn">▶ BEGIN</button>
-    </div>
-
-    <div id="cinematicOverlay" style="display: none;"></div>
-
     <div id="hud">
-        <div class="hud-left">
-            <div class="status-box" id="objectiveText">???</div>
-            <div class="status-box" style="border-left-color: #00ff00;">Flashlight [F]</div>
-        </div>
-        <div class="hud-right">
-            <div class="status-box" style="border-left-color: #ffff00;">🔑 Key: <span id="keyCount">0</span>/1</div>
-            <div class="status-box" style="border-left-color: #ff00ff;">🩸 Hand Parts: <span id="partCount">0</span>/3</div>
-        </div>
+        <div>OBJECTIVE: <span id="obj">???</span></div>
+        <div>JUNK PARTS: <span id="parts">0</span>/3</div>
+        <div>KEY FOUND: <span id="key">NO</span></div>
     </div>
-
-    <div class="crosshair" id="crosshair"></div>
-    <div id="interactPrompt" class="interact-prompt hidden">ACTION [E]</div>
-
-    <div class="scanlines"></div>
-    <div class="vignette"></div>
-    <div class="blood-overlay" id="bloodOverlay"></div>
-
-    <canvas id="gameCanvas"></canvas>
-
+    <div id="cinematic-text"></div>
+    <div id="prompt" class="prompt">PRESS [E] TO INTERACT</div>
+    <div id="crosshair"></div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="game.js"></script>
 </body>
