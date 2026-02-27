@@ -2,27 +2,347 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>THE VOID - FULL HORROR EXPERIENCE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE VOID - ULTIMATE HORROR EXPERIENCE</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
-        #hud { position: fixed; top: 20px; left: 20px; color: white; z-index: 10; pointer-events: none; opacity: 0; transition: 1s; }
-        .visible { opacity: 1 !important; }
-        .prompt { position: fixed; bottom: 20%; left: 50%; transform: translateX(-50%); color: yellow; font-size: 1.5rem; display: none; }
-        #cinematic-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 3rem; text-align: center; display: none; z-index: 100; pointer-events: none; }
-        canvas { display: block; }
-        #crosshair { position: fixed; top: 50%; left: 50%; width: 4px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+
+        /* HUD */
+        #hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: 1s;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-left: 4px solid #ff0000;
+            border-radius: 0 10px 10px 0;
+            text-shadow: 0 0 10px rgba(255,0,0,0.5);
+        }
+
+        .visible { 
+            opacity: 1 !important; 
+        }
+
+        .hud-item {
+            margin: 10px 0;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        .hud-label {
+            color: #ff6666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .hud-value {
+            color: #ffff00;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* FLASHLIGHT INDICATOR */
+        #flashlight-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 15px 25px;
+            border-right: 4px solid #ffff00;
+            border-radius: 10px 0 0 10px;
+            color: #ffff00;
+            font-size: 1.3rem;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 20px rgba(255,255,0,0.3);
+        }
+
+        /* PROMPT */
+        .prompt {
+            position: fixed;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffff00;
+            font-size: 1.8rem;
+            display: none;
+            background: rgba(0,0,0,0.8);
+            padding: 20px 40px;
+            border: 2px solid #ffff00;
+            border-radius: 10px;
+            z-index: 20;
+            text-shadow: 0 0 20px #ffff00;
+            animation: pulse 1s infinite;
+            white-space: nowrap;
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* CINEMATIC TEXT */
+        #cinematic-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 4rem;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 0 0 30px white, 0 0 60px rgba(255,255,255,0.5);
+            font-weight: bold;
+            letter-spacing: 10px;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -30%); }
+            20% { opacity: 1; transform: translate(-50%, -50%); }
+            80% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -70%); }
+        }
+
+        /* CROSSHAIR */
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        .crosshair-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px white;
+        }
+
+        .crosshair-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,0,0,0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: crosshairPulse 2s infinite;
+        }
+
+        @keyframes crosshairPulse {
+            0%,100% { width: 20px; height: 20px; opacity: 0.5; }
+            50% { width: 25px; height: 25px; opacity: 0.8; }
+        }
+
+        /* VISUAL EFFECTS */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, 
+                rgba(0,0,0,0) 0px, 
+                rgba(255,0,0,0.02) 1px, 
+                rgba(0,0,0,0) 2px);
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.5;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 200px rgba(0,0,0,0.9);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .blood-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, 
+                transparent 0%, 
+                rgba(139,0,0,0.3) 100%);
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* LOADING SCREEN */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s;
+        }
+
+        .loading-title {
+            font-size: 3rem;
+            color: #ff0000;
+            text-shadow: 0 0 30px #ff0000;
+            margin-bottom: 2rem;
+            animation: glitch 1s infinite;
+        }
+
+        .loading-bar-container {
+            width: 500px;
+            height: 10px;
+            background: #111;
+            border: 1px solid #ff0000;
+            margin: 20px 0;
+        }
+
+        .loading-bar {
+            width: 0%;
+            height: 100%;
+            background: #ff0000;
+            box-shadow: 0 0 20px #ff0000;
+            transition: width 0.3s;
+        }
+
+        .loading-tip {
+            color: #ff6666;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            animation: fadeTip 2s infinite;
+        }
+
+        @keyframes fadeTip {
+            0%,100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes glitch {
+            0%,100% { transform: translate(0); text-shadow: 2px 2px red; }
+            20% { transform: translate(-2px, 2px); text-shadow: -2px -2px blue; }
+            40% { transform: translate(-2px, -2px); text-shadow: 2px -2px green; }
+            60% { transform: translate(2px, 2px); text-shadow: -2px 2px red; }
+            80% { transform: translate(2px, -2px); text-shadow: 2px 2px blue; }
+        }
+
+        /* CONTROLS HINT */
+        #controls-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            color: #666;
+            padding: 10px;
+            font-size: 0.8rem;
+            border-radius: 5px;
+            z-index: 10;
+        }
+
+        canvas {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <div id="hud">
-        <div>OBJECTIVE: <span id="obj">???</span></div>
-        <div>JUNK PARTS: <span id="parts">0</span>/3</div>
-        <div>KEY FOUND: <span id="key">NO</span></div>
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <h1 class="loading-title">THE VOID</h1>
+        <div class="loading-bar-container">
+            <div id="loading-bar" class="loading-bar"></div>
+        </div>
+        <div id="loading-tip" class="loading-tip">Descending into darkness...</div>
     </div>
-    <div id="cinematic-text"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div class="hud-item">
+            <span class="hud-label">OBJECTIVE</span><br>
+            <span class="hud-value" id="obj">???</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">JUNK PARTS</span><br>
+            <span class="hud-value" id="parts">0/3</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">KEY FOUND</span><br>
+            <span class="hud-value" id="key">NO</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">HAND CRAFTED</span><br>
+            <span class="hud-value" id="hand">NO</span>
+        </div>
+    </div>
+
+    <!-- FLASHLIGHT STATUS -->
+    <div id="flashlight-status">🔦 ON</div>
+
+    <!-- INTERACTION PROMPT -->
     <div id="prompt" class="prompt">PRESS [E] TO INTERACT</div>
-    <div id="crosshair"></div>
-    
+
+    <!-- CINEMATIC TEXT -->
+    <div id="cinematic-text"></div>
+
+    <!-- CROSSHAIR -->
+    <div id="crosshair">
+        <div class="crosshair-dot"></div>
+        <div class="crosshair-ring"></div>
+    </div>
+
+    <!-- VISUAL EFFECTS -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="blood-overlay" id="blood-overlay"></div>
+
+    <!-- CONTROLS HINT -->
+    <div id="controls-hint">
+        WASD: Move | SPACE: Sprint | E: Interact | F: Flashlight | R: Drop Hand
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="game.js"></script>
 </body>
