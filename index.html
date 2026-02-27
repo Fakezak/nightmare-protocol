@@ -3,95 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIGHTMARE PROTOCOL - ULTIMATE HORROR</title>
+    <title>NIGHTMARE PROTOCOL - CINEMATIC HORROR</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        body {
-            overflow: hidden;
-            font-family: 'Courier New', monospace;
-            background: black;
-            color: white;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { overflow: hidden; font-family: 'Courier New', monospace; background: black; color: white; }
+        
         /* SCREENS */
-        .screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 1s;
-            background: black;
-        }
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; transition: opacity 1s; background: black; }
+        .hidden { display: none !important; }
 
-        .hidden {
-            display: none !important;
-        }
-
-        /* LOADING SCREEN */
-        #loadingScreen {
-            background: radial-gradient(circle at center, #000 0%, #0a0000 100%);
-        }
-
-        .loading-title {
-            font-size: 4rem;
-            color: #ff3333;
-            text-shadow: 0 0 30px #ff0000;
-            margin-bottom: 2rem;
-            animation: pulse 2s infinite;
-        }
-
-        .loading-bar-container {
-            width: 500px;
-            height: 10px;
-            background: #111;
-            border: 1px solid #ff0000;
-            margin: 20px 0;
-        }
-
-        .loading-bar {
-            width: 0%;
-            height: 100%;
-            background: #ff0000;
-            box-shadow: 0 0 20px #ff0000;
-            transition: width 0.3s;
-        }
-
-        .loading-tip {
-            color: #ff6666;
-            font-size: 1.2rem;
-            margin-top: 20px;
-            animation: fadeInOut 3s infinite;
-        }
-
-        @keyframes fadeInOut {
-            0%,100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* MAIN MENU */
-        #menuScreen {
-            background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
-        }
-
-        .menu-title {
-            font-size: 5rem;
-            color: #ff0000;
-            text-shadow: 3px 3px 0 #00ff00, -3px -3px 0 #0000ff;
-            margin-bottom: 1rem;
-            animation: glitch 3s infinite;
-        }
+        /* LOADING & MENU */
+        #loadingScreen { background: radial-gradient(circle at center, #000 0%, #0a0a0a 100%); }
+        .loading-title, .menu-title { font-size: 4rem; color: #ff3333; text-shadow: 0 0 30px #ff0000; margin-bottom: 2rem; }
+        .menu-title { font-size: 5rem; animation: glitch 3s infinite; }
+        .loading-bar-container { width: 500px; height: 10px; background: #111; border: 1px solid #ff0000; margin: 20px 0; }
+        .loading-bar { width: 0%; height: 100%; background: #ff0000; box-shadow: 0 0 20px #ff0000; transition: width 0.3s; }
+        .loading-tip { color: #ff6666; font-size: 1.2rem; margin-top: 20px; animation: fadeInOut 3s infinite; }
 
         @keyframes glitch {
             0%,100% { transform: translate(0); }
@@ -100,268 +27,66 @@
             96% { transform: translate(-5px, -5px); }
             98% { transform: translate(5px, 5px); }
         }
+        @keyframes fadeInOut { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        .menu-subtitle {
-            color: #ff6666;
-            font-size: 1.2rem;
-            margin-bottom: 4rem;
-            letter-spacing: 5px;
-        }
+        .menu-btn { background: transparent; border: 2px solid #ff0000; color: #ff0000; font-size: 1.5rem; padding: 15px 50px; margin: 10px; cursor: pointer; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 3px; transition: all 0.3s; min-width: 300px; }
+        .menu-btn:hover { background: #ff0000; color: black; box-shadow: 0 0 50px #ff0000; transform: scale(1.1); }
 
-        .menu-btn {
-            background: transparent;
-            border: 2px solid #ff0000;
-            color: #ff0000;
-            font-size: 1.5rem;
-            padding: 15px 50px;
-            margin: 10px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            transition: all 0.3s;
-            min-width: 300px;
-        }
+        /* HUD & CINEMATICS */
+        .cinematic-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 3rem; text-align: center; z-index: 2000; text-shadow: 0 0 30px #ffffff; animation: textAppear 3s; font-weight: bold; }
+        @keyframes textAppear { 0% { opacity: 0; transform: translate(-50%, -30%); } 20% { opacity: 1; transform: translate(-50%, -50%); } 80% { opacity: 1; } 100% { opacity: 0; } }
 
-        .menu-btn:hover {
-            background: #ff0000;
-            color: black;
-            box-shadow: 0 0 50px #ff0000;
-            transform: scale(1.1);
-        }
-
-        /* CINEMATIC TEXT */
-        .cinematic-text {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 4rem;
-            text-align: center;
-            z-index: 2000;
-            text-shadow: 0 0 30px #ffffff;
-            animation: textAppear 2s;
-            font-weight: bold;
-            letter-spacing: 10px;
-        }
-
-        @keyframes textAppear {
-            0% { opacity: 0; transform: translate(-50%, -30%); }
-            100% { opacity: 1; transform: translate(-50%, -50%); }
-        }
-
-        /* HUD */
-        #hud {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            color: white;
-            font-family: 'Courier New', monospace;
-            z-index: 100;
-            pointer-events: none;
-            display: flex;
-            justify-content: space-between;
-            opacity: 0;
-            transition: opacity 1s;
-        }
-
-        .hud-visible {
-            opacity: 1 !important;
-        }
-
-        .objective {
-            background: rgba(0,0,0,0.7);
-            padding: 15px;
-            border-left: 4px solid #ff0000;
-            font-size: 1.2rem;
-            max-width: 400px;
-        }
-
-        .inventory {
-            background: rgba(0,0,0,0.7);
-            padding: 15px;
-            border-left: 4px solid #ffff00;
-            font-size: 1.2rem;
-            display: flex;
-            gap: 10px;
-        }
-
-        .inventory-item {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #666;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .inventory-item.collected {
-            border-color: #00ff00;
-            background: rgba(0,255,0,0.1);
-        }
-
-        /* FLASHLIGHT INDICATOR */
-        .flashlight-indicator {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            color: #ffff00;
-            font-size: 1.5rem;
-            text-shadow: 0 0 20px #ffff00;
-            z-index: 100;
-        }
-
-        /* INTERACTION */
-        .crosshair {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ff0000;
-            border-radius: 50%;
-            z-index: 101;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-
-        .crosshair-visible {
-            opacity: 1;
-        }
-
-        .interact-prompt {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: #ffff00;
-            font-size: 1.5rem;
-            padding: 15px 30px;
-            border: 2px solid #ffff00;
-            z-index: 102;
-            pointer-events: none;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%,100% { opacity: 0.8; }
-            50% { opacity: 1; }
-        }
+        #hud { position: fixed; top: 20px; left: 20px; right: 20px; color: white; font-family: 'Courier New', monospace; z-index: 100; pointer-events: none; display: flex; justify-content: space-between; opacity: 0; transition: opacity 1s; }
+        .hud-visible { opacity: 1 !important; }
+        .status-box { background: rgba(0,0,0,0.7); padding: 15px; border-left: 4px solid #ff0000; font-size: 1.2rem; margin-bottom: 10px; }
+        .hud-left { display: flex; flex-direction: column; }
+        
+        .crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; z-index: 101; pointer-events: none; opacity: 0; }
+        .crosshair-visible { opacity: 1; }
+        .interact-prompt { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #ffff00; font-size: 1.5rem; padding: 15px 30px; border: 2px solid #ffff00; z-index: 102; pointer-events: none; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
 
         /* VISUAL EFFECTS */
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(255,0,0,0.02) 1px, rgba(0,0,0,0) 2px);
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        .vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            box-shadow: inset 0 0 200px rgba(0,0,0,0.9);
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        .blood-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, transparent 0%, rgba(139,0,0,0.3) 100%);
-            pointer-events: none;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .water-drip {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 30% 40%, rgba(0,100,255,0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 1000;
-            animation: drip 5s infinite;
-        }
-
-        @keyframes drip {
-            0%,100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-        }
-
-        canvas {
-            display: block;
-        }
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(255,0,0,0.02) 1px, rgba(0,0,0,0) 2px); pointer-events: none; z-index: 1000; }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 250px rgba(0,0,0,0.95); pointer-events: none; z-index: 1000; }
+        .blood-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 0%, rgba(139,0,0,0.3) 100%); pointer-events: none; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
-    <!-- LOADING SCREEN -->
     <div id="loadingScreen" class="screen">
         <h1 class="loading-title">NIGHTMARE PROTOCOL</h1>
-        <div class="loading-bar-container">
-            <div id="loadingBar" class="loading-bar"></div>
-        </div>
-        <div id="loadingTip" class="loading-tip">Descending into nightmare...</div>
+        <div class="loading-bar-container"><div id="loadingBar" class="loading-bar"></div></div>
+        <div id="loadingTip" class="loading-tip">Loading skyscraper jump...</div>
     </div>
 
-    <!-- MAIN MENU -->
     <div id="menuScreen" class="screen hidden">
         <h1 class="menu-title">NIGHTMARE</h1>
-        <div class="menu-subtitle">PROTOCOL</div>
-        <button class="menu-btn" id="playBtn">▶ BEGIN DESCENT</button>
-        <button class="menu-btn" id="settingsBtn">⚙ SETTINGS</button>
-        <button class="menu-btn" id="creditsBtn">📼 CREDITS</button>
+        <button class="menu-btn" id="playBtn">▶ BEGIN</button>
     </div>
 
-    <!-- CINEMATIC OVERLAY -->
     <div id="cinematicOverlay" style="display: none;"></div>
 
-    <!-- HUD -->
     <div id="hud">
-        <div class="objective" id="objectiveText">Find the hand parts to craft the left hand</div>
-        <div class="inventory" id="inventory">
-            <div class="inventory-item" id="part1">⚪</div>
-            <div class="inventory-item" id="part2">⚪</div>
-            <div class="inventory-item" id="part3">⚪</div>
-            <div class="inventory-item" id="part4">⚪</div>
-            <div class="inventory-item" id="hand">🖐️</div>
+        <div class="hud-left">
+            <div class="status-box" id="objectiveText">???</div>
+            <div class="status-box" style="border-left-color: #00ff00;">Flashlight [F]</div>
+        </div>
+        <div class="hud-right">
+            <div class="status-box" style="border-left-color: #ffff00;">🔑 Key: <span id="keyCount">0</span>/1</div>
+            <div class="status-box" style="border-left-color: #ff00ff;">🩸 Hand Parts: <span id="partCount">0</span>/3</div>
         </div>
     </div>
 
-    <!-- FLASHLIGHT INDICATOR -->
-    <div class="flashlight-indicator" id="flashlightIndicator">🔦 ON</div>
-
-    <!-- INTERACTION ELEMENTS -->
     <div class="crosshair" id="crosshair"></div>
-    <div id="interactPrompt" class="interact-prompt hidden">PRESS [E] TO INTERACT</div>
+    <div id="interactPrompt" class="interact-prompt hidden">ACTION [E]</div>
 
-    <!-- VISUAL EFFECTS -->
     <div class="scanlines"></div>
     <div class="vignette"></div>
     <div class="blood-overlay" id="bloodOverlay"></div>
-    <div class="water-drip" id="waterDrip"></div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <!-- THREE.JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="game.js"></script>
 </body>
