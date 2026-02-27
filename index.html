@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE VOID - ULTIMATE HORROR EXPERIENCE</title>
+    <title>THE VOID - HORROR</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,6 @@
         }
 
         body {
-            margin: 0;
             overflow: hidden;
             background: #000;
             font-family: 'Courier New', monospace;
@@ -37,69 +36,49 @@
         }
 
         .loading-title {
-            font-size: 4rem;
+            font-size: 2.5rem; /* Smaller */
             color: #ff3333;
-            text-shadow: 0 0 30px #ff0000, 2px 2px 0 #00ff00, -2px -2px 0 #0000ff;
-            margin-bottom: 2rem;
-            animation: glitch 3s infinite;
-        }
-
-        @keyframes glitch {
-            0%,100% { transform: translate(0); text-shadow: 2px 2px red, -2px -2px blue; }
-            20% { transform: translate(-2px, 2px); text-shadow: -2px -2px blue, 2px 2px green; }
-            40% { transform: translate(2px, -2px); text-shadow: 2px -2px green, -2px 2px red; }
-            60% { transform: translate(-2px, -2px); text-shadow: -2px 2px red, 2px -2px blue; }
-            80% { transform: translate(2px, 2px); text-shadow: 2px -2px blue, -2px 2px green; }
+            text-shadow: 0 0 20px #ff0000;
+            margin-bottom: 1rem;
         }
 
         .loading-bar-container {
-            width: 500px;
-            height: 10px;
+            width: 300px; /* Smaller */
+            height: 6px;
             background: #111;
-            border: 2px solid #ff0000;
-            margin: 20px 0;
-            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+            border: 1px solid #ff0000;
+            margin: 10px 0;
         }
 
         .loading-bar {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, #ff0000, #ff6666);
-            box-shadow: 0 0 30px #ff0000;
+            background: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
             transition: width 0.3s;
         }
 
         .loading-tip {
             color: #ff6666;
-            font-size: 1.3rem;
-            margin-top: 20px;
-            animation: fadeTip 2s infinite;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-
-        @keyframes fadeTip {
-            0%,100% { opacity: 0.5; text-shadow: 0 0 10px #ff0000; }
-            50% { opacity: 1; text-shadow: 0 0 30px #ff0000; }
+            font-size: 0.9rem; /* Smaller */
+            margin-top: 10px;
         }
 
         /* HUD */
         #hud {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 10px;
+            left: 10px;
             color: white;
             z-index: 10;
             pointer-events: none;
             opacity: 0;
             transition: 1s;
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
-            border-left: 4px solid #ff0000;
-            border-radius: 0 10px 10px 0;
-            text-shadow: 0 0 10px rgba(255,0,0,0.5);
-            backdrop-filter: blur(5px);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-left: 2px solid #ff0000;
+            border-radius: 0 5px 5px 0;
+            font-size: 0.8rem; /* Smaller */
         }
 
         .visible { 
@@ -107,67 +86,51 @@
         }
 
         .hud-item {
-            margin: 15px 0;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
+            margin: 5px 0;
         }
 
         .hud-label {
             color: #ff6666;
-            font-size: 0.9rem;
+            font-size: 0.6rem; /* Smaller */
             text-transform: uppercase;
             display: block;
-            margin-bottom: 5px;
         }
 
         .hud-value {
             color: #ffff00;
-            font-size: 1.8rem;
+            font-size: 1rem; /* Smaller */
             font-weight: bold;
-            text-shadow: 0 0 20px #ffff00;
         }
 
         /* FLASHLIGHT INDICATOR */
         #flashlight-status {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
-            padding: 15px 25px;
-            border-right: 4px solid #ffff00;
-            border-radius: 10px 0 0 10px;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-right: 2px solid #ffff00;
+            border-radius: 5px 0 0 5px;
             color: #ffff00;
-            font-size: 1.3rem;
+            font-size: 0.8rem; /* Smaller */
             z-index: 10;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 0 30px rgba(255,255,0,0.3);
-            backdrop-filter: blur(5px);
         }
 
         /* PROMPT */
         .prompt {
             position: fixed;
-            bottom: 20%;
+            bottom: 15%;
             left: 50%;
             transform: translateX(-50%);
             color: #ffff00;
-            font-size: 1.8rem;
+            font-size: 1rem; /* Smaller */
             display: none;
-            background: rgba(0,0,0,0.9);
-            padding: 20px 40px;
-            border: 2px solid #ffff00;
-            border-radius: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border: 1px solid #ffff00;
+            border-radius: 5px;
             z-index: 20;
-            text-shadow: 0 0 30px #ffff00;
-            animation: pulse 1s infinite;
             white-space: nowrap;
-            box-shadow: 0 0 50px rgba(255,255,0,0.3);
-        }
-
-        @keyframes pulse {
-            0%,100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
-            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
         }
 
         /* CINEMATIC TEXT */
@@ -177,23 +140,12 @@
             left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            font-size: 5rem;
+            font-size: 2rem; /* Smaller */
             text-align: center;
             display: none;
             z-index: 100;
-            pointer-events: none;
-            text-shadow: 0 0 30px white, 0 0 60px rgba(255,255,255,0.5);
-            font-weight: bold;
-            letter-spacing: 15px;
-            animation: fadeInOut 2s ease-in-out;
-            white-space: nowrap;
-        }
-
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, -30%); }
-            20% { opacity: 1; transform: translate(-50%, -50%); }
-            80% { opacity: 1; transform: translate(-50%, -50%); }
-            100% { opacity: 0; transform: translate(-50%, -70%); }
+            text-shadow: 0 0 20px white;
+            letter-spacing: 5px;
         }
 
         /* CROSSHAIR */
@@ -201,8 +153,8 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            width: 20px;
-            height: 20px;
+            width: 15px;
+            height: 15px;
             transform: translate(-50%, -50%);
             z-index: 15;
             pointer-events: none;
@@ -212,29 +164,22 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 4px;
-            height: 4px;
-            background: rgba(255,255,255,0.9);
+            width: 2px;
+            height: 2px;
+            background: white;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 20px white;
         }
 
         .crosshair-ring {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,0,0,0.6);
+            width: 15px;
+            height: 15px;
+            border: 1px solid rgba(255,0,0,0.5);
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            animation: crosshairPulse 2s infinite;
-        }
-
-        @keyframes crosshairPulse {
-            0%,100% { width: 20px; height: 20px; opacity: 0.5; }
-            50% { width: 30px; height: 30px; opacity: 0.8; }
         }
 
         /* VISUAL EFFECTS */
@@ -246,11 +191,11 @@
             height: 100%;
             background: repeating-linear-gradient(0deg, 
                 rgba(0,0,0,0) 0px, 
-                rgba(255,0,0,0.03) 1px, 
+                rgba(255,0,0,0.02) 1px, 
                 rgba(0,0,0,0) 2px);
             pointer-events: none;
             z-index: 1000;
-            opacity: 0.5;
+            opacity: 0.3;
         }
 
         .vignette {
@@ -259,7 +204,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            box-shadow: inset 0 0 200px rgba(0,0,0,0.9);
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
             pointer-events: none;
             z-index: 1000;
         }
@@ -270,28 +215,23 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, 
-                transparent 0%, 
-                rgba(139,0,0,0.4) 100%);
+            background: radial-gradient(circle at center, transparent 0%, rgba(139,0,0,0.3) 100%);
             pointer-events: none;
             z-index: 1000;
             opacity: 0;
-            transition: opacity 0.3s;
         }
 
         /* CONTROLS HINT */
         #controls-hint {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.6);
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
             color: #999;
-            padding: 15px;
-            font-size: 0.9rem;
-            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 0.7rem; /* Smaller */
+            border-radius: 3px;
             z-index: 10;
-            border-left: 2px solid #ff0000;
-            backdrop-filter: blur(5px);
         }
 
         canvas {
@@ -306,7 +246,7 @@
         <div class="loading-bar-container">
             <div id="loading-bar" class="loading-bar"></div>
         </div>
-        <div id="loading-tip" class="loading-tip">Descending into darkness...</div>
+        <div id="loading-tip" class="loading-tip">Descending...</div>
     </div>
 
     <!-- HUD -->
@@ -316,43 +256,30 @@
             <span class="hud-value" id="obj">???</span>
         </div>
         <div class="hud-item">
-            <span class="hud-label">JUNK PARTS</span>
+            <span class="hud-label">PARTS</span>
             <span class="hud-value" id="parts">0/3</span>
         </div>
         <div class="hud-item">
-            <span class="hud-label">KEY FOUND</span>
+            <span class="hud-label">KEY</span>
             <span class="hud-value" id="key">NO</span>
         </div>
         <div class="hud-item">
-            <span class="hud-label">HAND CRAFTED</span>
+            <span class="hud-label">HAND</span>
             <span class="hud-value" id="hand">NO</span>
         </div>
     </div>
 
-    <!-- FLASHLIGHT STATUS -->
     <div id="flashlight-status">🔦 ON</div>
-
-    <!-- INTERACTION PROMPT -->
-    <div id="prompt" class="prompt">PRESS [E] TO INTERACT</div>
-
-    <!-- CINEMATIC TEXT -->
+    <div id="prompt" class="prompt">PRESS [E]</div>
     <div id="cinematic-text"></div>
-
-    <!-- CROSSHAIR -->
     <div id="crosshair">
         <div class="crosshair-dot"></div>
         <div class="crosshair-ring"></div>
     </div>
-
-    <!-- VISUAL EFFECTS -->
     <div class="scanlines"></div>
     <div class="vignette"></div>
     <div class="blood-overlay" id="blood-overlay"></div>
-
-    <!-- CONTROLS HINT -->
-    <div id="controls-hint">
-        WASD: Move | SPACE: Sprint | E/Click: Interact | F: Flashlight
-    </div>
+    <div id="controls-hint">WASD | SPACE | E | F</div>
 
     <canvas id="gameCanvas"></canvas>
 
