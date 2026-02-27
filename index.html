@@ -2,286 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE VOID - HORROR</title>
+    <title>THE VOID: CHAPTER 1</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
+        #gui { position: fixed; top: 20px; left: 20px; color: #ff0000; z-index: 10; pointer-events: none; visibility: hidden; }
+        #cinematic-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0); transition: background 2s; pointer-events: none;
         }
-
-        body {
-            overflow: hidden;
-            background: #000;
-            font-family: 'Courier New', monospace;
-            color: white;
-        }
-
-        /* LOADING SCREEN */
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, #000 0%, #0a0000 100%);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 1s;
-        }
-
-        .loading-title {
-            font-size: 2.5rem; /* Smaller */
-            color: #ff3333;
-            text-shadow: 0 0 20px #ff0000;
-            margin-bottom: 1rem;
-        }
-
-        .loading-bar-container {
-            width: 300px; /* Smaller */
-            height: 6px;
-            background: #111;
-            border: 1px solid #ff0000;
-            margin: 10px 0;
-        }
-
-        .loading-bar {
-            width: 0%;
-            height: 100%;
-            background: #ff0000;
-            box-shadow: 0 0 15px #ff0000;
-            transition: width 0.3s;
-        }
-
-        .loading-tip {
-            color: #ff6666;
-            font-size: 0.9rem; /* Smaller */
-            margin-top: 10px;
-        }
-
-        /* HUD */
-        #hud {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            color: white;
-            z-index: 10;
-            pointer-events: none;
-            opacity: 0;
-            transition: 1s;
-            background: rgba(0,0,0,0.6);
-            padding: 10px;
-            border-left: 2px solid #ff0000;
-            border-radius: 0 5px 5px 0;
-            font-size: 0.8rem; /* Smaller */
-        }
-
-        .visible { 
-            opacity: 1 !important; 
-        }
-
-        .hud-item {
-            margin: 5px 0;
-        }
-
-        .hud-label {
-            color: #ff6666;
-            font-size: 0.6rem; /* Smaller */
-            text-transform: uppercase;
-            display: block;
-        }
-
-        .hud-value {
-            color: #ffff00;
-            font-size: 1rem; /* Smaller */
-            font-weight: bold;
-        }
-
-        /* FLASHLIGHT INDICATOR */
-        #flashlight-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 8px 15px;
-            border-right: 2px solid #ffff00;
-            border-radius: 5px 0 0 5px;
-            color: #ffff00;
-            font-size: 0.8rem; /* Smaller */
-            z-index: 10;
-        }
-
-        /* PROMPT */
-        .prompt {
-            position: fixed;
-            bottom: 15%;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ffff00;
-            font-size: 1rem; /* Smaller */
-            display: none;
-            background: rgba(0,0,0,0.8);
-            padding: 10px 20px;
-            border: 1px solid #ffff00;
-            border-radius: 5px;
-            z-index: 20;
-            white-space: nowrap;
-        }
-
-        /* CINEMATIC TEXT */
-        #cinematic-text {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 2rem; /* Smaller */
-            text-align: center;
-            display: none;
-            z-index: 100;
-            text-shadow: 0 0 20px white;
-            letter-spacing: 5px;
-        }
-
-        /* CROSSHAIR */
-        #crosshair {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 15px;
-            height: 15px;
-            transform: translate(-50%, -50%);
-            z-index: 15;
-            pointer-events: none;
-        }
-
-        .crosshair-dot {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .crosshair-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 15px;
-            height: 15px;
-            border: 1px solid rgba(255,0,0,0.5);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        /* VISUAL EFFECTS */
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(0deg, 
-                rgba(0,0,0,0) 0px, 
-                rgba(255,0,0,0.02) 1px, 
-                rgba(0,0,0,0) 2px);
-            pointer-events: none;
-            z-index: 1000;
-            opacity: 0.3;
-        }
-
+        #text-display { color: white; font-size: 2.5rem; text-align: center; text-shadow: 0 0 20px #fff; opacity: 0; transition: opacity 1s; }
         .vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
-            pointer-events: none;
-            z-index: 1000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 150px #000; pointer-events: none;
         }
-
-        .blood-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, transparent 0%, rgba(139,0,0,0.3) 100%);
-            pointer-events: none;
-            z-index: 1000;
-            opacity: 0;
-        }
-
-        /* CONTROLS HINT */
-        #controls-hint {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.5);
-            color: #999;
-            padding: 5px 10px;
-            font-size: 0.7rem; /* Smaller */
-            border-radius: 3px;
-            z-index: 10;
-        }
-
-        canvas {
-            display: block;
-        }
+        #crosshair { position: fixed; top: 50%; left: 50%; width: 5px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 50%; transform: translate(-50%, -50%); }
     </style>
 </head>
 <body>
-    <!-- LOADING SCREEN -->
-    <div id="loading-screen">
-        <h1 class="loading-title">THE VOID</h1>
-        <div class="loading-bar-container">
-            <div id="loading-bar" class="loading-bar"></div>
-        </div>
-        <div id="loading-tip" class="loading-tip">Descending...</div>
+    <div id="gui">
+        <div>PARTS COLLECTED: <span id="parts-count">0</span>/3</div>
+        <div>EQUIPMENT: Flashlight (F) | Sprint (Shift/Space)</div>
     </div>
-
-    <!-- HUD -->
-    <div id="hud">
-        <div class="hud-item">
-            <span class="hud-label">OBJECTIVE</span>
-            <span class="hud-value" id="obj">???</span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">PARTS</span>
-            <span class="hud-value" id="parts">0/3</span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">KEY</span>
-            <span class="hud-value" id="key">NO</span>
-        </div>
-        <div class="hud-item">
-            <span class="hud-label">HAND</span>
-            <span class="hud-value" id="hand">NO</span>
-        </div>
-    </div>
-
-    <div id="flashlight-status">🔦 ON</div>
-    <div id="prompt" class="prompt">PRESS [E]</div>
-    <div id="cinematic-text"></div>
-    <div id="crosshair">
-        <div class="crosshair-dot"></div>
-        <div class="crosshair-ring"></div>
-    </div>
-    <div class="scanlines"></div>
+    <div id="cinematic-overlay"><div id="text-display"></div></div>
     <div class="vignette"></div>
-    <div class="blood-overlay" id="blood-overlay"></div>
-    <div id="controls-hint">WASD | SPACE | E | F</div>
-
-    <canvas id="gameCanvas"></canvas>
+    <div id="crosshair"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="game.js"></script>
