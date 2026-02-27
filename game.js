@@ -4,9 +4,7 @@ const CONFIG = {
     SPRINT_SPEED: 0.15,
     MOUSE_SENSITIVITY: 0.002,
     FLASHLIGHT_INTENSITY: 2,
-    GRAVITY: 0.01,
-    FALL_SPEED: 0.1,
-    MASTER_VOLUME: 0.8
+    GRAVITY: 0.01
 };
 
 // ==================== INITIALIZATION ====================
@@ -21,6 +19,7 @@ const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.bias = 0.0001;
 renderer.toneMapping = THREE.ReinhardToneMapping;
 renderer.toneMappingExposure = 1.2;
 
@@ -29,7 +28,7 @@ document.body.appendChild(renderer.domElement);
 const clock = new THREE.Clock();
 
 // ==================== GAME STATE ====================
-let gameState = 'LOADING'; // LOADING, INTRO, FALLING, VOID, HOUSE, END
+let gameState = 'LOADING';
 let player = { 
     speed: CONFIG.WALK_SPEED, 
     hasKey: false, 
@@ -41,14 +40,76 @@ let player = {
 };
 
 const keys = {};
-const interactables = [];
 let bodyParts = [];
 let furniture = [];
+let portal, grandfatherClockHand, keyObj, table, vent, handObject, flashlight, flashlightTarget, houseGroup;
+
+// ==================== AUDIO SYSTEM ====================
+const audioSystem = {
+    context: null,
+    
+    init() {
+        try {
+            this.context = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {
+            console.log("Audio not supported");
+        }
+    },
+    
+    playSound(type) {
+        if (!this.context) this.init();
+        if (!this.context) return;
+        
+        try {
+            const oscillator = this.context.createOscillator();
+            const gainNode = this.context.createGain();
+            
+            switch(type) {
+                case 'footstep':
+                    oscillator.frequency.value = 100 + Math.random() * 50;
+                    gainNode.gain.value = 0.05;
+                    oscillator.type = 'triangle';
+                    break;
+                case 'explosion':
+                    oscillator.frequency.value = 50;
+                    gainNode.gain.value = 0.3;
+                    oscillator.type = 'sawtooth';
+                    break;
+                case 'whisper':
+                    oscillator.frequency.value = 200 + Math.random() * 100;
+                    gainNode.gain.value = 0.05;
+                    oscillator.type = 'sine';
+                    break;
+                case 'i-see-you':
+                    oscillator.frequency.value = 150;
+                    gainNode.gain.value = 0.2;
+                    oscillator.type = 'sawtooth';
+                    break;
+                default:
+                    return;
+            }
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.context.destination);
+            
+            oscillator.start();
+            oscillator.stop(this.context.currentTime + 0.2);
+            
+            console.log(`Playing: ${type}`);
+        } catch(e) {
+            console.log("Audio error:", e);
+        }
+    }
+};
 
 // ==================== LOADING SEQUENCE ====================
 window.addEventListener('load', () => {
     console.log('Loading THE VOID...');
     
+    // Initialize audio
+    audioSystem.init();
+    
+    // Start loading animation
     let progress = 0;
     const loadingBar = document.getElementById('loading-bar');
     const loadingTip = document.getElementById('loading-tip');
@@ -61,11 +122,13 @@ window.addEventListener('load', () => {
         'Craft the hand',
         'I see you...',
         'The clock never stops',
-        'Your flashlight is dying'
+        'Your flashlight pierces the dark',
+        'Don\'t look behind you',
+        'The nightmare begins'
     ];
     
     const loadInterval = setInterval(() => {
-        progress += Math.random() * 5;
+        progress += Math.random() * 8;
         if (progress > 100) progress = 100;
         
         loadingBar.style.width = progress + '%';
@@ -77,17 +140,16 @@ window.addEventListener('load', () => {
                 document.getElementById('loading-screen').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loading-screen').style.display = 'none';
-                    gameState = 'INTRO';
                     initGame();
                 }, 1000);
             }, 500);
         }
-    }, 100);
+    }, 150);
 });
 
 // ==================== GAME INIT ====================
 function initGame() {
-    console.log('Building nightmare...');
+    console.log('Building nightmare world...');
     
     // Setup lighting
     setupLighting();
@@ -107,33 +169,34 @@ function initGame() {
     // Setup controls
     setupControls();
     
-    // Start animation
-    animate();
+    // Start intro
+    playIntro();
 }
 
 // ==================== LIGHTING ====================
 function setupLighting() {
     // Ambient light
-    const ambient = new THREE.AmbientLight(0x111122);
+    const ambient = new THREE.AmbientLight(0x222233);
     scene.add(ambient);
     
     // Player flashlight
-    window.flashlight = new THREE.SpotLight(0xffeedd, CONFIG.FLASHLIGHT_INTENSITY, 30, Math.PI/6, 0.5, 2);
+    flashlight = new THREE.SpotLight(0xffeedd, CONFIG.FLASHLIGHT_INTENSITY, 30, Math.PI/6, 0.5, 2);
     flashlight.castShadow = true;
     flashlight.shadow.mapSize.width = 1024;
     flashlight.shadow.mapSize.height = 1024;
+    flashlight.shadow.bias = -0.0001;
     scene.add(flashlight);
     
-    window.flashlightTarget = new THREE.Object3D();
+    flashlightTarget = new THREE.Object3D();
     scene.add(flashlightTarget);
     flashlight.target = flashlightTarget;
     
     // Additional lights for atmosphere
-    const pointLight1 = new THREE.PointLight(0x442222, 0.3, 50);
+    const pointLight1 = new THREE.PointLight(0x442222, 0.2, 50);
     pointLight1.position.set(500, 5, 500);
     scene.add(pointLight1);
     
-    const pointLight2 = new THREE.PointLight(0x224422, 0.2, 50);
+    const pointLight2 = new THREE.PointLight(0x224422, 0.1, 50);
     pointLight2.position.set(450, 5, 450);
     scene.add(pointLight2);
 }
@@ -185,7 +248,7 @@ function createSkyscraper() {
     
     scene.add(buildingGroup);
     
-    // Roof platform (where player stands)
+    // Roof platform
     const roofPlatformGeo = new THREE.BoxGeometry(20, 1, 20);
     const roofPlatformMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
     const roofPlatform = new THREE.Mesh(roofPlatformGeo, roofPlatformMat);
@@ -232,16 +295,16 @@ function createPortal() {
     portalGroup.add(particles);
     
     portalGroup.position.set(0, 50, -10);
-    window.portal = portalGroup;
+    portal = portalGroup;
     scene.add(portalGroup);
 }
 
 // ==================== HAUNTED HOUSE ====================
 function createHouse() {
-    window.houseGroup = new THREE.Group();
+    houseGroup = new THREE.Group();
     houseGroup.position.set(500, 0, 500);
     
-    // Load textures with fallbacks
+    // Load textures
     const loader = new THREE.TextureLoader();
     const wallTex = loader.load('https://threejs.org/examples/textures/brick_diffuse.jpg');
     const floorTex = loader.load('https://threejs.org/examples/textures/floors/FloorsCheckerboard_S_Diffuse.jpg');
@@ -249,7 +312,7 @@ function createHouse() {
     const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, color: 0x888888, roughness: 0.7 });
     const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, color: 0x444444, roughness: 0.9 });
     
-    // Massive Floor
+    // Floor
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), floorMat);
     floor.rotation.x = -Math.PI/2;
     floor.position.y = 0;
@@ -410,7 +473,7 @@ function createGrandfatherClock() {
     hand.position.set(0, 4, 1.2);
     clockGroup.add(hand);
     
-    window.grandfatherClockHand = hand;
+    grandfatherClockHand = hand;
     
     clockGroup.position.set(525, 0, 525);
     scene.add(clockGroup);
@@ -492,7 +555,7 @@ function createKey() {
     keyGroup.position.set(482, 1.1, 483);
     keyGroup.rotation.y = Math.PI/4;
     
-    window.keyObj = keyGroup;
+    keyObj = keyGroup;
     scene.add(keyGroup);
 }
 
@@ -522,7 +585,7 @@ function createTable() {
     });
     
     tableGroup.position.set(500, 0, 515);
-    window.table = tableGroup;
+    table = tableGroup;
     scene.add(tableGroup);
 }
 
@@ -548,7 +611,7 @@ function createVent() {
         ventGroup.add(slat);
     }
     
-    window.vent = ventGroup;
+    vent = ventGroup;
     scene.add(ventGroup);
 }
 
@@ -599,58 +662,9 @@ function createCompletedHand() {
     handGroup.position.set(500, 1.2, 515); // On table
     handGroup.visible = false;
     
-    window.handObject = handGroup;
+    handObject = handGroup;
     scene.add(handGroup);
 }
-
-// ==================== AUDIO SYSTEM ====================
-const audioSystem = {
-    context: null,
-    
-    init() {
-        this.context = new (window.AudioContext || window.webkitAudioContext)();
-    },
-    
-    playSound(type) {
-        if (!this.context) this.init();
-        
-        const oscillator = this.context.createOscillator();
-        const gainNode = this.context.createGain();
-        
-        switch(type) {
-            case 'footstep':
-                oscillator.frequency.value = 100 + Math.random() * 50;
-                gainNode.gain.value = 0.1;
-                oscillator.type = 'triangle';
-                break;
-            case 'explosion':
-                oscillator.frequency.value = 50;
-                gainNode.gain.value = 0.5;
-                oscillator.type = 'sawtooth';
-                break;
-            case 'whisper':
-                oscillator.frequency.value = 200 + Math.random() * 100;
-                gainNode.gain.value = 0.1;
-                oscillator.type = 'sine';
-                break;
-            case 'i-see-you':
-                oscillator.frequency.value = 150;
-                gainNode.gain.value = 0.3;
-                oscillator.type = 'sawtooth';
-                break;
-            default:
-                return;
-        }
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.context.destination);
-        
-        oscillator.start();
-        oscillator.stop(this.context.currentTime + 0.2);
-        
-        console.log(`Playing: ${type}`);
-    }
-};
 
 // ==================== CONTROLS ====================
 function setupControls() {
@@ -658,13 +672,8 @@ function setupControls() {
         keys[e.code] = true; 
         
         // Flashlight toggle
-        if (e.code === 'KeyF' && gameState === 'HOUSE') {
+        if (e.code === 'KeyF' && gameState === 'HOUSE' && player.canMove) {
             toggleFlashlight();
-        }
-        
-        // Drop hand
-        if (e.code === 'KeyR' && gameState === 'HOUSE' && player.holdingHand) {
-            toggleHoldHand();
         }
     });
     
@@ -673,17 +682,17 @@ function setupControls() {
     });
     
     document.addEventListener('mousedown', (e) => {
-        if (e.button === 0 && gameState === 'HOUSE') {
+        if (e.button === 0 && gameState === 'HOUSE' && player.canMove) {
             checkInteraction();
         }
         
-        if (document.pointerLockElement !== document.body) {
+        if (document.pointerLockElement !== document.body && player.canMove) {
             document.body.requestPointerLock();
         }
     });
     
     document.addEventListener('mousemove', (e) => {
-        if (document.pointerLockElement && player.canMove) {
+        if (document.pointerLockElement && player.canMove && gameState === 'HOUSE') {
             camera.rotation.y -= e.movementX * CONFIG.MOUSE_SENSITIVITY;
             camera.rotation.x -= e.movementY * CONFIG.MOUSE_SENSITIVITY;
             camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
@@ -701,32 +710,9 @@ function toggleFlashlight() {
     document.getElementById('flashlight-status').style.color = player.flashlightOn ? '#ffff00' : '#666666';
 }
 
-// ==================== HAND TOGGLE ====================
-function toggleHoldHand() {
-    player.holdingHand = !player.holdingHand;
-    audioSystem.playSound('whisper');
-    
-    if (player.holdingHand) {
-        // Attach hand to camera
-        scene.remove(handObject);
-        camera.add(handObject);
-        handObject.position.set(0.3, -0.2, -0.5);
-        handObject.rotation.set(0, 0, 0);
-        handObject.scale.set(0.5, 0.5, 0.5);
-        showPrompt('Right click to move furniture');
-    } else {
-        // Place hand back
-        camera.remove(handObject);
-        scene.add(handObject);
-        handObject.position.set(500, 1.2, 515);
-        handObject.rotation.set(0, 0, 0);
-        handObject.scale.set(1, 1, 1);
-    }
-}
-
 // ==================== INTERACTION ====================
 function checkInteraction() {
-    if (!player.canMove) return;
+    if (!player.canMove || gameState !== 'HOUSE') return;
     
     // Check junk parts
     bodyParts.forEach((part, index) => {
@@ -761,15 +747,6 @@ function checkInteraction() {
             escapeVent();
         }
     }
-    
-    // Check furniture (if holding hand)
-    if (player.holdingHand) {
-        furniture.forEach(item => {
-            if (camera.position.distanceTo(item.position) < 3) {
-                moveFurniture(item);
-            }
-        });
-    }
 }
 
 function collectJunk(part, index) {
@@ -800,7 +777,7 @@ function collectKey() {
 function castSpell() {
     player.crafted = true;
     document.getElementById('hand').innerHTML = 'YES';
-    document.getElementById('obj').innerText = 'Use hand to move furniture';
+    document.getElementById('obj').innerText = 'Find the vent in bedroom';
     
     // Create hand
     createCompletedHand();
@@ -831,15 +808,6 @@ function castSpell() {
     setTimeout(() => {
         document.getElementById('blood-overlay').style.opacity = '0';
     }, 1000);
-}
-
-function moveFurniture(item) {
-    // Move furniture out of the way
-    item.position.x += 2;
-    item.position.z += 2;
-    
-    audioSystem.playSound('footstep');
-    showPrompt('Furniture moved!');
 }
 
 function escapeVent() {
@@ -939,7 +907,7 @@ async function playIntro() {
     
     // VOID sequence
     gameState = 'VOID';
-    portal.visible = false;
+    if (portal) portal.visible = false;
     
     for(let i = 0; i < 3; i++) {
         showCinematicText('WAKE UP' + '.'.repeat(i+1));
@@ -947,8 +915,8 @@ async function playIntro() {
     }
     
     // Transition to house
-    camera.position.set(485, 1.7, 485);
-    camera.rotation.set(0, Math.PI/2, 0);
+    camera.position.set(480, 1.7, 480);
+    camera.rotation.set(0, 0, 0);
     
     document.getElementById('hud').classList.add('visible');
     document.getElementById('obj').innerText = 'Find the key';
@@ -956,12 +924,12 @@ async function playIntro() {
     gameState = 'HOUSE';
     player.canMove = true;
     
-    // Start ambient sounds
+    // Start ambient whispers
     setInterval(() => {
         if (gameState === 'HOUSE' && Math.random() < 0.1) {
             audioSystem.playSound('whisper');
         }
-    }, 5000);
+    }, 8000);
 }
 
 function sleep(ms) {
@@ -999,6 +967,7 @@ function updatePlayer() {
     // Keep in house bounds
     camera.position.x = Math.max(465, Math.min(535, camera.position.x));
     camera.position.z = Math.max(465, Math.min(535, camera.position.z));
+    camera.position.y = 1.7; // Keep at eye level
 }
 
 function updateFlashlight() {
@@ -1050,20 +1019,8 @@ function updateInteractPrompt() {
         if (camera.position.distanceTo(worldPos) < 3) showPrompt = true;
     }
     
-    if (player.holdingHand) {
-        furniture.forEach(item => {
-            if (camera.position.distanceTo(item.position) < 3) showPrompt = true;
-        });
-    }
-    
     document.getElementById('prompt').style.display = showPrompt ? 'block' : 'none';
 }
-
-// ==================== MENU BUTTONS ====================
-document.getElementById('playBtn')?.addEventListener('click', () => {
-    document.getElementById('menuScreen').classList.add('hidden');
-    playIntro();
-});
 
 // ==================== ANIMATION LOOP ====================
 function animate() {
@@ -1090,14 +1047,4 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ==================== START GAME ====================
-// Start directly (remove menu for simplicity)
-setTimeout(() => {
-    if (gameState === 'LOADING') {
-        gameState = 'INTRO';
-        initGame();
-        playIntro();
-    }
-}, 1000);
-
-console.log('THE VOID - Ultimate Horror Experience Loaded');
+console.log('THE VOID - Game initialized, loading screen will disappear automatically');
